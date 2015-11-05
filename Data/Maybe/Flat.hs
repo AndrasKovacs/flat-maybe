@@ -2,7 +2,15 @@
    RoleAnnotations, UnboxedTuples, BangPatterns, KindSignatures,
    DeriveDataTypeable, ScopedTypeVariables #-}
 
-import Prelude hiding (Maybe(..))
+module Data.Maybe.Flat (
+    Maybe
+  , pattern Nothing
+  , pattern Just
+  , maybe
+  , isJust
+  , isNothing ) where
+    
+import Prelude hiding (Maybe(..), maybe)
 
 import Control.Applicative
 import Control.Monad
