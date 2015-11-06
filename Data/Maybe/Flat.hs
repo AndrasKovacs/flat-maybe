@@ -10,7 +10,7 @@ module Data.Maybe.Flat (
   , isJust
   , isNothing ) where
     
-import Prelude hiding (Maybe(..), maybe)
+import Prelude hiding (Maybe(..), maybe, null)
 
 import Control.Applicative
 import Control.Monad
@@ -27,17 +27,21 @@ newtype Maybe (a :: *) = Maybe Any deriving (Typeable)
 
 data Null = Null
 
+null :: Null
+null = Null
+{-# NOINLINE null #-}
+
 isNothing# :: Maybe a -> Int#
-isNothing# (Maybe !any) = reallyUnsafePtrEquality# (unsafeCoerce# any) Null
+isNothing# (Maybe !any) = reallyUnsafePtrEquality# (unsafeCoerce# any) null
 {-# INLINE isNothing# #-}
 
 isJust# :: Maybe a -> (# Int#, a #)
 isJust# (Maybe !any) =
-  (# reallyUnsafePtrEquality# (unsafeCoerce# any) Null, unsafeCoerce# any #)
+  (# reallyUnsafePtrEquality# (unsafeCoerce# any) null, unsafeCoerce# any #)
 {-# INLINE isJust# #-}  
 
 pattern Nothing <- (isNothing# -> 1#) where
-  Nothing = (unsafeCoerce# Null :: Maybe a)
+  Nothing = (unsafeCoerce# null :: Maybe a)
 
 pattern Just a <- (isJust# -> (# 0#, a #)) where
   Just (a :: a) = (unsafeCoerce# a :: Maybe a)
