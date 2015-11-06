@@ -7,8 +7,7 @@ module Data.Maybe.Flat (
   , pattern Nothing
   , pattern Just
   , maybe
-  , isJust
-  , isNothing ) where
+  ) where
     
 import Prelude hiding (Maybe(..), maybe, null)
 
@@ -48,36 +47,34 @@ pattern Just a <- (isJust# -> (# 0#, a #)) where
 
 maybe :: b -> (a -> b) -> Maybe a -> b
 maybe b f (Just a) = f a
-maybe b f Nothing  = b
-
-isJust :: Maybe a -> Bool
-isJust (Just _) = True
-isJust _        = False
-
-isNothing :: Maybe a -> Bool
-isNothing Nothing = True
-isNothing _       = False
+maybe b f _        = b
 
 instance Functor Maybe where
   fmap f (Just a) = Just (f a)
-  fmap f Nothing  = Nothing
+  fmap f x        = unsafeCoerce# x
 
 instance Foldable Maybe where
   foldr f z (Just a) = f a z
-  foldr f z Nothing  = z
+  foldr f z _        = z
   
   foldl f = foldr (flip f)
   
   foldMap f (Just a) = f a
-  foldMap f Nothing  = mempty
+  foldMap f _        = mempty
 
 instance Traversable Maybe where
   traverse f (Just a) = Just <$> f a
-  traverse f Nothing  = pure Nothing
+  traverse f x        = pure (unsafeCoerce# x)
 
 instance Eq a => Eq (Maybe a) where
   Just a == Just b = a == b
   _      == _      = False
+
+instance Monoid a => Monoid (Maybe a) where
+  mempty = Nothing
+  Nothing `mappend` m = m
+  m `mappend` Nothing = m
+  Just m1 `mappend` Just m2 = Just (m1 `mappend` m2)  
 
 instance Ord a => Ord (Maybe a) where
   compare (Just a) (Just b) = compare a b
@@ -86,10 +83,12 @@ instance Ord a => Ord (Maybe a) where
   compare _        _        = EQ
 
 instance Show a => Show (Maybe a) where
-    showsPrec _ Nothing  s = showString "Nothing" s
-    showsPrec p (Just a) s = (showParen (p > appPrec) $
-                             showString "Just " .
-                             showsPrec appPrec1 a) s
+    showsPrec p (Just a) s =
+      (showParen (p > appPrec) $
+        showString "Just " .
+        showsPrec appPrec1 a) s  
+    showsPrec _ _ s = showString "Nothing" s
+
 
 instance Read a => Read (Maybe a) where
   readPrec =
@@ -107,14 +106,14 @@ instance Applicative Maybe where
     pure = Just
 
     Just f  <*> m       = fmap f m
-    Nothing <*> _m      = Nothing
+    x       <*> _m      = unsafeCoerce# x
 
     Just _m1 *> m2      = m2
-    Nothing  *> _m2     = Nothing
+    x        *> _m2     = unsafeCoerce# x
 
 instance  Monad Maybe  where
     (Just x) >>= k      = k x
-    Nothing  >>= _      = Nothing
+    x        >>= _      = unsafeCoerce# x
 
     (>>) = (*>)
 
@@ -131,7 +130,7 @@ instance MonadPlus Maybe
 instance MonadFix Maybe where
     mfix f = let a = f (unJust a) in a
              where unJust (Just x) = x
-                   unJust Nothing  = error "mfix Maybe: Nothing"
+                   unJust _        = error "mfix Maybe: Nothing"
 
 nothingConstr :: Constr
 nothingConstr = mkConstr maybeDataType "Nothing" [] Prefix
@@ -142,10 +141,12 @@ maybeDataType :: DataType
 maybeDataType = mkDataType "Prelude.Maybe" [nothingConstr,justConstr]
 
 instance Data a => Data (Maybe a) where
-  gfoldl _ z Nothing  = z Nothing
   gfoldl f z (Just x) = z Just `f` x
-  toConstr Nothing  = nothingConstr
-  toConstr (Just _) = justConstr
+  gfoldl _ z x        = z x
+
+  toConstr (Just _) = justConstr  
+  toConstr _        = nothingConstr
+
   gunfold k z c = case constrIndex c of
                     1 -> z Nothing
                     2 -> k (z Just)
