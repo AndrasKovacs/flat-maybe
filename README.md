@@ -16,6 +16,6 @@ This package implements the Rust scheme in an absolutely ungodly way. Basically,
      |
      tag | data
 
-One rather nasty thing about this solution is that our `Just` isn't parametrically polymorphic: `Just (Just Nothing)` immediately collapses to `Nothing` for any number of intermediate `Just`-s, but it works normally for any non-`Maybe` type. 
+One rather nasty thing about this solution is that our `Just` isn't parametrically polymorphic: `Just (Just Nothing)` immediately collapses to `Nothing` for any number of intermediate `Just`-s, but it works normally for any non-`Maybe` type. A funny consequence is that we can implement the monadic join as `unsafeCoerce`.  
 
 Nasty this might be, the performance seems to be really good, probably the best I've seen for fast error handling. 
