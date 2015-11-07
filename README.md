@@ -1,8 +1,21 @@
 # flat-maybe
-Rust-style strict Maybe in Haskell: no space/indirection overhead.
+In the Rust programming language, there is a nice optimization for the `Option` (the analoue of `Maybe` in Haskell) type: if the `Option` holds a reference type, then the `Option<A>` values are represented as a pointer that's either some null-like value or a pointer to the object itself. In contrast, Haskell's `Maybe` always has at least two indirections:
 
-It's implemented in a really ungodly way, but at least it's much faster then Maybe (detailed benchmarks pending!). Use it at your own risk.
+    ptr    
+     |
+     |
+    Just | ptr
+           |
+           |
+          tag | data
 
-Basically, a `Maybe a` is either a pointer to an `a` object, or a pointer to a dummy "null" value that isn't exported from the library. We check "constructors" with `reallyUnsafePtrEquality#`. 
+This package implements the Rust scheme in an absolutely ungodly way. Basically, a `Maybe a` is either a pointer to an `a` object, or a pointer to a dummy "null" value that isn't exported from the library. The representation is `newtype Maybe a = Maybe Any`. We check "constructors" with `reallyUnsafePtrEquality#`. The result looks like this:
+
+    ptr
+     |
+     |
+     tag | data
 
 One rather nasty thing about this solution is that our `Just` isn't parametrically polymorphic: `Just (Just Nothing)` immediately collapses to `Nothing` for any number of intermediate `Just`-s, but it works normally for any non-`Maybe` type. 
+
+Nasty this might be, the performance seems to be really good, probably the best I've seen for fast error handling. 
