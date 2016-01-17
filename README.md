@@ -1,5 +1,5 @@
 # flat-maybe
-In the Rust programming language, there is a nice optimization for the `Option` (the analoue of `Maybe` in Haskell) type: if the `Option` holds a reference type, then the `Option<A>` values are represented as a pointer that's either some null-like value or a pointer to the object itself. In contrast, Haskell's `Maybe` always has at least two indirections:
+In the Rust programming language, there is a nice optimization for the `Option` (the analogue of `Maybe` in Haskell) type: if the `Option` holds a reference type, then the `Option<A>` values are represented as a pointer that's either some null-like value or a pointer to the object itself. In contrast, Haskell's `Maybe` always has at least two indirections:
 
     ptr    
      |
