@@ -1,4 +1,7 @@
 # flat-maybe
+
+**2024 UPDATE**: this repo is *unsafe* in the sense that it randomly segfaults under certain GHC versions and conditions that I have not investigated in detail. Use it at your own risk, but in most cases you should just not use it! I'm writing this note in 2024 because I see a few people starring the repo and I'd prefer them to not get random segfaults. Below is the README from 2015.
+
 In the Rust programming language, there is a nice optimization for the `Option` (the analogue of `Maybe` in Haskell) type: if the `Option` holds a reference type, then the `Option<A>` values are represented as a pointer that's either some null-like value or a pointer to the object itself. In contrast, Haskell's `Maybe` always has at least two indirections:
 
     ptr    
